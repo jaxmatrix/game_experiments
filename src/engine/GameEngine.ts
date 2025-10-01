@@ -13,10 +13,12 @@ export class GameEngine {
 	private app: Application | null = null;
 	private gameContainer: Container | null = null;
 	private isRunning: boolean = false;
-	// --- Fixed-step logic timing state ---
-	private updateRate = 10
+
+	// Update cycle config
+	private updateRate = 10;
 	private updateAccumulator = 0; // ms accumulated since last logic step
 	private updateInterval = 1000 / this.updateRate; // default 4 updates per second (250ms)
+
 	// cached ticker callback so we can remove it cleanly on destroy
 	private readonly tick = (ticker: any) => {
 		if (!this.isRunning) return;
@@ -36,6 +38,10 @@ export class GameEngine {
 	private movementSystem: MovementSystem = new MovementSystem();
 	private renderSystem: RenderSystem = new RenderSystem();
 	private player: Entity | undefined = undefined;
+
+	// Application config
+	private height!: number;
+	private width!: number;
 
 	constructor() {
 		this.init = this.init.bind(this);
@@ -64,6 +70,8 @@ export class GameEngine {
 			// Create main game container
 			this.gameContainer = new Container();
 			this.app.stage.addChild(this.gameContainer);
+			this.width = width;
+			this.height = height;
 
 			// Set up basic scene
 			this.setupScene();
@@ -91,11 +99,11 @@ export class GameEngine {
 
 		this.gameContainer.addChild(background);
 
-		const rows = 16;
-		const cols = 16;
-		const box = 32; // box size
+		const rows = 48;
+		const cols = 48;
+		const box = 10; // box size
 
-		const gap = 4; // spacing between boxes
+		const gap = 2; // spacing between boxes
 
 		const color = 0xffffff; // green
 
@@ -116,7 +124,9 @@ export class GameEngine {
 
 		const playerColor = 0x0e123b;
 		// Same order fix for player square
-		const playerGraphic = new Graphics().rect(0, 0, box, box).fill({ color: playerColor });
+		const playerGraphic = new Graphics()
+			.rect(0, 0, box, box)
+			.fill({ color: playerColor });
 
 		this.gameContainer.addChild(playerGraphic);
 
@@ -124,15 +134,15 @@ export class GameEngine {
 		this.player.addComponent(new ControllableComponent());
 		this.player.addComponent(new VisualComponent(gap, box, playerGraphic));
 		this.player.addComponent(new VelocityComponent(0, 0));
-		this.player.addComponent(new PositionComponent(0, 0));
-		console.log("Setup Called", this.player, grid)
+		this.player.addComponent(new PositionComponent(0, 0, this.width));
+		console.log("Setup Called", this.player, grid);
 	}
 
 	private gameLoop(): void {
 		if (!this.isRunning || !this.app) return;
 		// Add the stored ticker callback (idempotent if called once)
 		this.app.ticker.add(this.tick);
-		console.log("Ticker Called", this.app.ticker)
+		console.log("Ticker Called", this.app.ticker);
 	}
 
 	// Manual render loop removed; relying on Pixi's internal ticker + auto render.
@@ -207,7 +217,9 @@ export class GameEngine {
 		const clamped = Math.max(1, Math.min(120, rate));
 		this.updateInterval = 1000 / clamped;
 		this.updateAccumulator = 0; // reset accumulator to avoid burst after rate change
-		console.log(`Logic update rate set to ${clamped} UPS (interval=${this.updateInterval.toFixed(2)}ms)`);
+		console.log(
+			`Logic update rate set to ${clamped} UPS (interval=${this.updateInterval.toFixed(2)}ms)`,
+		);
 	}
 
 	// Run one logic step (ECS systems)

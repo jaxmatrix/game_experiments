@@ -11,6 +11,11 @@ export function PixiGame({ width, height }: PixiGameProps) {
 	const gameEngineRef = useRef<GameEngine | null>(null);
 	const [isInitialized, setIsInitialized] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [resetGame, setResetGame] = useState<number>(0);
+
+	const handleUpdate = () => {
+		setResetGame(resetGame + 1);
+	};
 
 	// Initialize PixiJS when component mounts
 	useEffect(() => {
@@ -42,7 +47,7 @@ export function PixiGame({ width, height }: PixiGameProps) {
 			}
 			setIsInitialized(false);
 		};
-	}, []); // Only run once on mount
+	}, [resetGame]); // Only run once on mount
 
 	// Handle resize when dimensions change
 	useEffect(() => {
@@ -52,43 +57,52 @@ export function PixiGame({ width, height }: PixiGameProps) {
 	}, [width, height, isInitialized]);
 
 	return (
-		<div className="w-full h-full">
-			<canvas
-				ref={canvasRef}
-				className="absolute top-0 left-0 w-full h-full block"
-				style={{
-					width: "100%",
-					height: "100%",
-					display: "block",
-					zIndex: 0,
+		<div>
+			<button
+				onClick={() => {
+					handleUpdate();
 				}}
-			/>
+			>
+				Reset Game
+			</button>
+			<div className="w-full h-full">
+				<canvas
+					ref={canvasRef}
+					className="absolute top-10 left-0 w-full h-full block"
+					style={{
+						width: height,
+						height: width,
+						display: "block",
+						zIndex: 0,
+					}}
+				/>
 
-			{/* Loading state */}
-			{!isInitialized && !error && (
-				<div className="absolute inset-0 flex items-center justify-center bg-gray-900 z-10">
-					<div className="text-white font-mighty text-center">
-						<div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full mx-auto mb-4"></div>
-						<p>Loading Game Engine...</p>
+				{/* Loading state */}
+				{!isInitialized && !error && (
+					<div className="absolute inset-0 flex items-center justify-center bg-gray-900 z-10">
+						<div className="text-white font-mighty text-center">
+							<div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full mx-auto mb-4"></div>
+							<p>Loading Game Engine...</p>
+						</div>
 					</div>
-				</div>
-			)}
+				)}
 
-			{/* Error state */}
-			{error && (
-				<div className="absolute inset-0 flex items-center justify-center bg-red-900/20 z-10">
-					<div className="text-white font-mighty text-center p-6 bg-red-900/50 rounded-lg">
-						<h3 className="text-xl mb-2">Game Engine Error</h3>
-						<p className="text-sm text-red-200">{error}</p>
-						<button
-							className="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 rounded transition-colors text-white"
-							onClick={() => window.location.reload()}
-						>
-							Reload
-						</button>
+				{/* Error state */}
+				{error && (
+					<div className="absolute inset-0 flex items-center justify-center bg-red-900/20 z-10">
+						<div className="text-white font-mighty text-center p-6 bg-red-900/50 rounded-lg">
+							<h3 className="text-xl mb-2">Game Engine Error</h3>
+							<p className="text-sm text-red-200">{error}</p>
+							<button
+								className="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 rounded transition-colors text-white"
+								onClick={() => window.location.reload()}
+							>
+								Reload
+							</button>
+						</div>
 					</div>
-				</div>
-			)}
+				)}
+			</div>
 		</div>
 	);
 }
