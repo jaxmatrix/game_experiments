@@ -4,10 +4,12 @@ import type { EntityManager } from "../core";
 export const keyboard: Record<string, boolean> = {};
 
 window.addEventListener("keydown", (e: KeyboardEvent) => {
+	console.log("Key press detected", e.key)
 	keyboard[e.key] = true;
 });
 
 window.addEventListener("keyup", (e: KeyboardEvent) => {
+	console.log("Key press detected", e.key)
 	keyboard[e.key] = false;
 });
 

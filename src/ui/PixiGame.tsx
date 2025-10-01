@@ -36,6 +36,7 @@ export function PixiGame({ width, height }: PixiGameProps) {
 		// Cleanup on unmount
 		return () => {
 			if (gameEngineRef.current) {
+				console.log("Destruction of pixi game started");
 				gameEngineRef.current.destroy();
 				gameEngineRef.current = null;
 			}

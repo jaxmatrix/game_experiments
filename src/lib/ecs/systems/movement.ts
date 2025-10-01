@@ -11,7 +11,7 @@ export class MovementSystem {
 			ControllableComponent,
 		);
 
-		const speed = 2;
+		const speed = 36;
 
 		for (const entity of entities) {
 			const pos = entity.getComponent(PositionComponent);
@@ -22,11 +22,12 @@ export class MovementSystem {
 			vel.y = 0;
 			if (control.isLeftPressed) vel.x = -speed;
 			if (control.isRightPressed) vel.x = speed;
-			if (control.isUpPressed) vel.y = speed;
-			if (control.isDownPressed) vel.y = -speed;
+			if (control.isUpPressed) vel.y = -speed;
+			if (control.isDownPressed) vel.y = speed;
 
 			pos.x += vel.x;
-			pos.x += vel.y;
+			pos.y += vel.y;
+			console.log("Update Movement")
 		}
 	}
 }
