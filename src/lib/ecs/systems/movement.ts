@@ -11,34 +11,33 @@ export class MovementSystem {
 			ControllableComponent,
 		);
 
-		const speed = 12;
-
 		for (const entity of entities) {
 			const pos = entity.getComponent(PositionComponent);
 			const vel = entity.getComponent(VelocityComponent);
 			const control = entity.getComponent(ControllableComponent);
 
-			vel.x = 0;
-			vel.y = 0;
-			if (control.isLeftPressed) vel.x = -speed;
-			if (control.isRightPressed) vel.x = speed;
-			if (control.isUpPressed) vel.y = -speed;
-			if (control.isDownPressed) vel.y = speed;
+			let speedx = 0;
+			let speedy = 0;
+			if (control.isLeftPressed) speedx = -vel.x;
+			if (control.isRightPressed) speedx = vel.x;
+			if (control.isUpPressed) speedy = -vel.y;
+			if (control.isDownPressed) speedy = vel.y;
 
 			pos.x =
-				pos.x > pos.loopSize - speed
+				pos.x > pos.loopSize - vel.x
 					? 0
 					: pos.x < 0
-						? pos.loopSize - speed
-						: pos.x + vel.x;
+						? pos.loopSize - vel.x
+						: pos.x + speedx;
+
 			pos.y =
-				pos.y > pos.loopSize - speed
+				pos.y > pos.loopSize - vel.y
 					? 0
 					: pos.y < 0
-						? pos.loopSize - speed
-						: pos.y + vel.y;
+						? pos.loopSize - vel.y
+						: pos.y + speedy;
 
-			console.log(pos.x, pos.y, pos.loopSize, speed);
+			console.log(pos.x, pos.y, pos.loopSize, vel.x, vel.y);
 		}
 	}
 }

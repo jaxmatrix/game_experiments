@@ -133,7 +133,7 @@ export class GameEngine {
 		this.player = this.entityManager.createEntity();
 		this.player.addComponent(new ControllableComponent());
 		this.player.addComponent(new VisualComponent(gap, box, playerGraphic));
-		this.player.addComponent(new VelocityComponent(0, 0));
+		this.player.addComponent(new VelocityComponent(12, 12));
 		this.player.addComponent(new PositionComponent(0, 0, this.width));
 		console.log("Setup Called", this.player, grid);
 	}
