@@ -22,7 +22,7 @@ export class TileMapSystem {
           0,
           size + gap,
           size + gap,
-        ).fill('yellow');
+        ).fill('green');
 
       case "water":
         return new Graphics().rect(
@@ -44,7 +44,7 @@ export class TileMapSystem {
           0,
           size + gap,
           size + gap,
-        ).fill('green');
+        ).fill('darkgreen');
       default: return null
     }
   }
