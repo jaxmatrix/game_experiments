@@ -6,6 +6,12 @@ interface PixiGameProps {
 	height: number;
 }
 
+declare global {
+	interface Window {
+		__PIXIGAME__?: GameEngine | null;
+	}
+}
+
 export function PixiGame({ width, height }: PixiGameProps) {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const gameEngineRef = useRef<GameEngine | null>(null);
@@ -14,70 +20,71 @@ export function PixiGame({ width, height }: PixiGameProps) {
 	const [resetGame, setResetGame] = useState<number>(0);
 
 	const handleUpdate = () => {
-		setResetGame(resetGame + 1);
+		setResetGame((n) => n + 1);
 	};
 
-	// Initialize PixiJS when component mounts
 	useEffect(() => {
+		let cancelled = false;
 		const initGame = async () => {
-			if (!canvasRef.current || gameEngineRef.current) return;
+			if (!canvasRef.current) return;
 
 			try {
-				const gameEngine = new GameEngine();
-				await gameEngine.init(canvasRef.current, width, height);
-
-				gameEngineRef.current = gameEngine;
-				setIsInitialized(true);
-				setError(null);
+				let engine = window.__PIXIGAME__ ?? null;
+				if (!engine) {
+					engine = new GameEngine();
+					await engine.init(canvasRef.current, width, height);
+					window.__PIXIGAME__ = engine;
+				} else {
+					engine.resize(width, height);
+				}
+				if (!cancelled) {
+					gameEngineRef.current = engine;
+					setIsInitialized(true);
+					setError(null);
+				}
 			} catch (err) {
 				console.error("Failed to initialize game:", err);
-				setError("Failed to initialize game engine");
-				setIsInitialized(false);
+				if (!cancelled) {
+					setError("Failed to initialize game engine");
+					setIsInitialized(false);
+				}
 			}
 		};
 
 		initGame();
 
-		// Cleanup on unmount
 		return () => {
-			if (gameEngineRef.current) {
-				console.log("Destruction of pixi game started");
-				gameEngineRef.current.destroy();
-				gameEngineRef.current = null;
-			}
+			gameEngineRef.current = null;
 			setIsInitialized(false);
 		};
-	}, [resetGame]); // Only run once on mount
+	}, [resetGame, width, height]);
 
-	// Handle resize when dimensions change
 	useEffect(() => {
-		if (gameEngineRef.current && isInitialized) {
-			gameEngineRef.current.resize(width, height);
+		if (import.meta.hot) {
+			import.meta.hot.dispose(() => {
+				if (window.__PIXIGAME__) {
+					window.__PIXIGAME__!.destroy();
+					window.__PIXIGAME__ = null;
+				}
+			});
+		}
+	}, []);
+
+	useEffect(() => {
+		if (window.__PIXIGAME__ && isInitialized) {
+			window.__PIXIGAME__!.resize(width, height);
 		}
 	}, [width, height, isInitialized]);
 
 	return (
 		<div>
-			<button
-				onClick={() => {
-					handleUpdate();
-				}}
-			>
-				Reset Game
-			</button>
+			<button onClick={handleUpdate}>Reset Game</button>
 			<div className="w-full h-full">
 				<canvas
 					ref={canvasRef}
 					className="absolute top-10 left-0 w-full h-full block"
-					style={{
-						width: height,
-						height: width,
-						display: "block",
-						zIndex: 0,
-					}}
+					style={{ width: height, height: width, display: "block", zIndex: 0 }}
 				/>
-
-				{/* Loading state */}
 				{!isInitialized && !error && (
 					<div className="absolute inset-0 flex items-center justify-center bg-gray-900 z-10">
 						<div className="text-white font-mighty text-center">
@@ -86,17 +93,12 @@ export function PixiGame({ width, height }: PixiGameProps) {
 						</div>
 					</div>
 				)}
-
-				{/* Error state */}
 				{error && (
 					<div className="absolute inset-0 flex items-center justify-center bg-red-900/20 z-10">
 						<div className="text-white font-mighty text-center p-6 bg-red-900/50 rounded-lg">
 							<h3 className="text-xl mb-2">Game Engine Error</h3>
 							<p className="text-sm text-red-200">{error}</p>
-							<button
-								className="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 rounded transition-colors text-white"
-								onClick={() => window.location.reload()}
-							>
+							<button className="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 rounded transition-colors text-white" onClick={() => window.location.reload()}>
 								Reload
 							</button>
 						</div>
